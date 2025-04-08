@@ -1,0 +1,12 @@
+body {
+  font-family: sans-serif;
+  background: #f5f6fa;
+  padding: 20px;
+}
+.partido {
+  background: white;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
