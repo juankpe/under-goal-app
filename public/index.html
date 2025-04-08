@@ -2,12 +2,65 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Under Goal App</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predicción de Goles en Vivo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #f5f6fa; padding: 20px; }
+    h1 { color: #2c3e50; }
+    .partido { border: 1px solid #ccc; background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+    .alto { background-color: #ffe5e5; }
+    .moderado { background-color: #fff5cc; }
+    .bajo { background-color: #e5ffe5; }
+  </style>
 </head>
 <body>
-  <h1>Partidos en Vivo (min 30 a 60)</h1>
-  <div id="partidos"></div>
-  <script src="script.js"></script>
+  <h1>Partidos en Vivo - Predicción de Goles</h1>
+  <div id="contenedor"></div>
+
+  <script>
+    async function cargarPartidos() {
+      const res = await fetch("/api/predicciones-goles");
+      const datos = await res.json();
+
+      const contenedor = document.getElementById("contenedor");
+      contenedor.innerHTML = "";
+
+      datos.forEach((p, i) => {
+        const div = document.createElement("div");
+        div.className = `partido ${p.prediccion}`;
+        div.innerHTML = `
+          <h3>${p.equipos}</h3>
+          <p>Minuto: ${p.minuto}</p>
+          <p>Goles: ${p.goles}</p>
+          <p>Disparos: ${p.tiros} | Ataques peligrosos: ${p.ataquesPeligrosos}</p>
+          <p>xG total: ${p.xg}</p>
+          <strong>Predicción: ${p.prediccion.toUpperCase()}</strong>
+          <canvas id="grafico-${i}" height="100"></canvas>
+        `;
+        contenedor.appendChild(div);
+
+        const ctx = document.getElementById(`grafico-${i}`).getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ["Tiros", "Ataques", "xG"],
+            datasets: [{
+              label: "Indicadores",
+              data: [p.tiros, p.ataquesPeligrosos, p.xg],
+              backgroundColor: ["#3498db", "#f1c40f", "#2ecc71"]
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      });
+    }
+
+    cargarPartidos();
+    setInterval(cargarPartidos, 60000); // Actualiza cada 60s
+  </script>
 </body>
 </html>
